@@ -76,6 +76,14 @@
             
             this.newPos = function(){
                 this.x += this.speedX;
+
+                if (this.x <= 0){
+                    this.x = 0;
+                }
+
+                if (this.x + this.width >= myGameArea.canvas.width){
+                    this.x = myGameArea.canvas.width - this.width;
+                }
             }
 
             this.crashWith = function(otherobj){
@@ -124,21 +132,27 @@
             if (scoreCount < 0){
                 scoreCount = 0
             }
+
             myScoreText.text = "SCORE: " + scoreCount; 
             myScoreText.update();
         }
 
         function moveleft(){
+            
             myGamePiece.speedX -= 4;
+            
         }
 
         function moveRight(){
             myGamePiece.speedX += 4;
+            
         }
 
         function stopMove(){
             myGamePiece.speedX = 0;
         }
+
+    
     </script>
         <div class="center">
             <button onmousedown="moveleft()" onmouseup="stopMove()" ontouchstart="moveleft()">LEFT</button>
