@@ -4,9 +4,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
+        body{
+            text-align: center;
+        }
         canvas{
+            text-align: center;
             border: 1px solid #d3d3d3;
             background-color: #f1f1f1;
+        }
+        button {
+            width: 200px;
+            height: 100px;
         }
     </style>
 </head>
@@ -14,10 +22,13 @@
     <script>
         var myGamePiece;
         var myObstacle;
+        var myScoreText;
+        var scoreCount = 0;
 
         function startGame() {
-            myGamePiece = new component(30, 30, "red", 125 - 15, 240);
-            myObstacle = new component(10, 70, "green", 125 - 5, 0);
+            myGamePiece = new component(30, 30, "red", 125 - 15, 240, "square");
+            myObstacle = new component(10, 70, "green", 125 - 5, 0, "circle");
+            myScoreText = new component("20px", "Consolas", "purple", 0, 25, "text")
             myGameArea.start();
         }
 
@@ -35,21 +46,34 @@
             }
         }
 
-        function component(width, height, color, x, y){
+        function component(width, height, color, x, y, type){
             this.width = width;
             this.height = height;
             this.speedX = 0;
             this.x = x;
             this.y = y;
+            this.type = type;
             
 
             this.update = function(){
                 ctx = myGameArea.context;
                 ctx.fillStyle = color;
+
+                if (type == "square"){
                 ctx.fillRect(this.x, this.y, this.width, this.height);
+                }else if (type == "text"){
+                    ctx.font = this.width + " " + this.height;
+                    ctx.fillStyle = color;
+                    ctx.fillText(this.text, this.x, this.y);
+                }else {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.width, 0, 2 * Math.PI);
+                    
+                    ctx.fill();
+                    ctx.stroke();
+                }
                 }
             
-
             this.newPos = function(){
                 this.x += this.speedX;
             }
@@ -59,15 +83,22 @@
                 var myright = this.x + this.width;
                 var mytop = this.y;
                 var mybottom = this.y + this.height;
+
                 var otherleft = otherobj.x;
                 var otherright = otherobj.x + otherobj.width;
                 var othertop = otherobj.y;
                 var otherbottom = otherobj.y + otherobj.height;
 
-                if (mybottom > othertop &&
-                    mytop < otherbottom &&
-                    myright > otherleft &&
-                    myleft < otherright) {
+                var othercenterX = otherobj.x + otherobj.width / 2;
+                var othercenterY = otherobj.y + otherobj.width / 2;
+                var otherradius = otherobj.width / 2;
+
+                var closestX = Math.max(myleft, Math.min(othercenterX, myright))
+                var closestY = Math.max(mytop, Math.min(othercenterY, mybottom));
+                var distanceX = othercenterX - closestX; 
+                var distanceY = othercenterY - closestY;
+                var distanceSquared = distanceX * distanceX + distanceY * distanceY;
+                if(distanceSquared < otherradius * otherradius){
                     return true;
                 }
                 return false;
@@ -78,29 +109,40 @@
             if (myGamePiece.crashWith(myObstacle)){
                 myObstacle.y = 0;
                 myObstacle.x = Math.floor(Math.random() * (myGameArea.canvas.width - myObstacle.width));
-            } else {
+                scoreCount += 1; 
+            } else if (myObstacle.y >= 275){
+                myObstacle.y = 0
+                scoreCount -= 1
+            }
+            else {
                 myGameArea.clear();
-                myObstacle.y += 1;
+                myObstacle.y += 3;
                 myObstacle.update();
                 myGamePiece.newPos();
                 myGamePiece.update();
             }
+            if (scoreCount < 0){
+                scoreCount = 0
+            }
+            myScoreText.text = "SCORE: " + scoreCount; 
+            myScoreText.update();
         }
 
         function moveleft(){
-            myGamePiece.speedX -= 1;
+            myGamePiece.speedX -= 4;
         }
 
         function moveRight(){
-            myGamePiece.speedX += 1;
+            myGamePiece.speedX += 4;
         }
 
         function stopMove(){
             myGamePiece.speedX = 0;
         }
     </script>
-    <p>Empty Canvas</p>
-    <button onmousedown="moveleft()" onmouseup="stopMove()" ontouchstart="moveleft()">LEFT</button>
-    <button onmousedown="moveRight()" onmouseup="stopMove()" ontouchstart="moveRight()">RIGHT</button>
+        <div class="center">
+            <button onmousedown="moveleft()" onmouseup="stopMove()" ontouchstart="moveleft()">LEFT</button>
+            <button onmousedown="moveRight()" onmouseup="stopMove()" ontouchstart="moveRight()">RIGHT</button>
+        </div>
 </body>
 </html>
